@@ -1,5 +1,6 @@
 import ROOT
 import os  
+
 def ParseModel(modelFile, verbose=False):
 
     parser = ROOT.TMVA.Experimental.SOFIE.RModelParser_ONNX()

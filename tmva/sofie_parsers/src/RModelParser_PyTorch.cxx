@@ -71,6 +71,7 @@ std::unique_ptr<ROperator> MakePyTorchNode(PyObject* fNode);
 std::unique_ptr<ROperator> MakePyTorchGemm(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Gemm operator
 std::unique_ptr<ROperator> MakePyTorchConv(PyObject* fNode); // For instantiating ROperator for PyTorch ONNX's Conv operator
 std::unique_ptr<ROperator> MakePyTorchRelu(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Relu operator
+std::unique_ptr<ROperator> MakePyTorchElu(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Elu operator
 std::unique_ptr<ROperator> MakePyTorchSelu(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Selu operator
 std::unique_ptr<ROperator> MakePyTorchSigmoid(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Sigmoid operator
 std::unique_ptr<ROperator> MakePyTorchTranspose(PyObject* fNode); // For instantiating ROperator for PyTorch ONNX's Transpose operator
@@ -85,7 +86,8 @@ const PyTorchMethodMap mapPyTorchNode =
     {"onnx::Relu",      &MakePyTorchRelu},
     {"onnx::Selu",      &MakePyTorchSelu},
     {"onnx::Sigmoid",   &MakePyTorchSigmoid},
-    {"onnx::Transpose", &MakePyTorchTranspose}
+    {"onnx::Transpose", &MakePyTorchTranspose},
+    {"onnx::Elu",       &MakePyTorchElu},
 };
 
 
@@ -197,6 +199,36 @@ std::unique_ptr<ROperator> MakePyTorchRelu(PyObject* fNode){
                 throw std::runtime_error("TMVA::SOFIE - Unsupported - Operator Relu does not yet support input type " + fNodeDType);
         }
         return op;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+/// \brief Prepares a ROperator_Elu object
+///
+/// \param[in] fNode Python PyTorch ONNX Graph node
+/// \return Unique pointer to ROperator object
+///
+/// For instantiating a ROperator_ELU object, the names of
+/// input & output tensors and the data-type of the Graph node
+/// are extracted.
+std::unique_ptr<ROperator> MakePyTorchElu(PyObject* fNode){
+    PyObject* fInputs      = PyDict_GetItemString(fNode, "nodeInputs");
+    PyObject* fOutputs     = PyDict_GetItemString(fNode, "nodeOutputs");
+    PyObject* fAttributes  = PyDict_GetItemString(fNode, "nodeAttributes");
+    std::string fNodeDType = PyStringAsString(PyList_GetItem(PyDict_GetItemString(fNode, "nodeDType"), 0));
+    std::string fNameX     = PyStringAsString(PyList_GetItem(fInputs, 0));
+    std::string fNameY     = PyStringAsString(PyList_GetItem(fOutputs, 0));
+    PyObject* fAlpha       = PyDict_GetItemString(fAttributes, "alpha");
+    float alpha            = fAlpha ? (float)PyFloat_AsDouble(fAlpha) : 1.0f; // check if fAlpha is float. if not, default to 1.0
+    std::unique_ptr<ROperator> op;
+    switch(ConvertStringToType(fNodeDType)){
+        case ETensorType::FLOAT: {
+            op.reset(new ROperator_Elu<float>(alpha, fNameX, fNameY));
+            break;
+        }
+        default:
+            throw std::runtime_error("TMVA::SOFIE - Unsupported - Operator Elu does not yet support input type " + fNodeDType);
+    }
+    return op;
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -484,7 +516,7 @@ RModel Parse(std::string filename, std::vector<std::vector<size_t>> inputShapes,
         if(fNodeType == "onnx::Gemm"){
             rmodel.AddBlasRoutines({"Gemm", "Gemv"});
         }
-        else if(fNodeType == "onnx::Selu" || fNodeType == "onnx::Sigmoid"){
+        else if(fNodeType == "onnx::Selu" || fNodeType == "onnx::Sigmoid" || fNodeType == "onnx::Elu"){ // changed, if Elu node, then we need cmath
             rmodel.AddNeededStdLib("cmath");
         }
         else if (fNodeType == "onnx::Conv") {
