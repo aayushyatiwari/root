@@ -70,6 +70,7 @@ std::unique_ptr<ROperator> MakePyTorchNode(PyObject* fNode);
 
 std::unique_ptr<ROperator> MakePyTorchGemm(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Gemm operator
 std::unique_ptr<ROperator> MakePyTorchConv(PyObject* fNode); // For instantiating ROperator for PyTorch ONNX's Conv operator
+std::unique_ptr<ROperator> MakePyTorchMaxPool2D(PyObject* fNode); // For instantiating ROperator for PyTorch ONNX's Conv operator
 std::unique_ptr<ROperator> MakePyTorchRelu(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Relu operator
 std::unique_ptr<ROperator> MakePyTorchElu(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Elu operator
 std::unique_ptr<ROperator> MakePyTorchSelu(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Selu operator
@@ -83,6 +84,7 @@ const PyTorchMethodMap mapPyTorchNode =
 {
     {"onnx::Gemm",      &MakePyTorchGemm},
     {"onnx::Conv",      &MakePyTorchConv},
+    {"onnx::MaxPool", &MakePyTorchMaxPool2D},
     {"onnx::Relu",      &MakePyTorchRelu},
     {"onnx::Selu",      &MakePyTorchSelu},
     {"onnx::Sigmoid",   &MakePyTorchSigmoid},
@@ -363,6 +365,45 @@ std::unique_ptr<ROperator> MakePyTorchConv(PyObject* fNode){
             throw std::runtime_error("TMVA::SOFIE - Unsupported - Operator Conv does not yet support input type " + fNodeDType);
         }
         return op;
+}
+ 
+//////////////////////////////////////////////////////////////////////////////////
+/// \brief Prepares a ROperator_MaxPool2D object
+///
+/// \param[in] fNode Python PyTorch ONNX Graph node
+/// \return Unique pointer to ROperator object
+///
+/// For Conv Operator of PyTorch's ONNX Graph, attributes like dilations, ceil_mode,
+/// kernel shape, pads and strides are found, and are passed in instantiating the
+/// ROperator object.
+std::unique_ptr<ROperator> MakePyTorchMaxPool2D(PyObject* fNode){
+    PyObject* fAttributes  = PyDict_GetItemString(fNode, "nodeAttributes");
+    PyObject* fInputs      = PyDict_GetItemString(fNode, "nodeInputs");
+    PyObject* fOutputs     = PyDict_GetItemString(fNode, "nodeOutputs");
+    std::string fNodeDType = PyStringAsString(PyList_GetItem(PyDict_GetItemString(fNode, "nodeDType"), 0));
+    PyObject* fKernelShape = PyDict_GetItemString(fAttributes, "kernel_shape");
+    PyObject* fPads        = PyDict_GetItemString(fAttributes, "pads");
+    PyObject* fStrides     = PyDict_GetItemString(fAttributes, "strides");
+    PyObject* fDilations   = PyDict_GetItemString(fAttributes, "dilations");
+    PyObject* fCeilMode    = PyDict_GetItemString(fAttributes, "ceil_mode");
+    RAttributes_Pool attr;
+    attr.kernel_shape = GetDataFromList(fKernelShape);
+    attr.pads         = GetDataFromList(fPads);
+    attr.strides      = GetDataFromList(fStrides);
+    attr.dilations    = GetDataFromList(fDilations);
+    attr.ceil_mode    = PyLong_AsLong(fCeilMode);
+    std::string fNameX = PyStringAsString(PyList_GetItem(fInputs, 0));
+    std::string fNameY = PyStringAsString(PyList_GetItem(fOutputs, 0));
+    std::unique_ptr<ROperator> op;
+    switch(ConvertStringToType(fNodeDType)){
+        case ETensorType::FLOAT: {
+            op.reset(new ROperator_Pool<float>(MaxPool, attr, fNameX, fNameY));
+            break;
+        }
+        default:
+            throw std::runtime_error("TMVA::SOFIE - Unsupported - Operator MaxPool does not yet support input type " + fNodeDType);
+    }
+    return op;
 }
 }//INTERNAL
 
