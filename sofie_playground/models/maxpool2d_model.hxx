@@ -1,4 +1,4 @@
-//Code generated automatically by TMVA for Inference of Model file [maxpool2d_model.pt] at [Wed Mar  4 16:05:41 2026] 
+//Code generated automatically by TMVA for Inference of Model file [maxpool2d_model.pt] at [Wed Mar  4 19:39:00 2026] 
 
 #ifndef ROOT_TMVA_SOFIE_MAXPOOL2D_MODEL
 #define ROOT_TMVA_SOFIE_MAXPOOL2D_MODEL
