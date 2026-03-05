@@ -77,4 +77,4 @@ rmodel.Generate()
 - More layer types: `Conv2d`, `Linear`, `Dropout`, `LayerNorm`
 - Bidirectional RNN/LSTM/GRU support
 - Multi-input and skip-connection model support
-- Numerical validation against PyTorch inference output
+- Numerical validation against PyTorch inference output (high priority)

@@ -182,6 +182,24 @@ def generate_keras_functional(dst_dir):
     model = models.Model([in1, in2], out)
     train_and_save(model, "Subtract")
 
+    #simple rnn
+    inp = layers.Input(shape=(10, 8))
+    out = layers.SimpleRNN(16)(inp)
+    model = models.Model(inp, out)
+    train_and_save(model, "SimpleRNN")
+
+    # lstm
+    inp = layers.Input(shape=(10, 8))
+    out = layers.LSTM(16)(inp)
+    model = models.Model(inp, out)
+    train_and_save(model, "LSTM")
+
+    # gru
+    inp = layers.Input(shape=(10, 8))
+    out = layers.GRU(16)(inp)
+    model = models.Model(inp, out)
+    train_and_save(model, "GRU")
+
     # Layer Combination
 
     inp = layers.Input(shape=(32, 32, 3))

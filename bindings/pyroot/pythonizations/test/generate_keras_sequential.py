@@ -172,6 +172,27 @@ def generate_keras_sequential(dst_dir):
     ])
     train_and_save(model, "Softmax")
 
+    #simple RNN
+    model = models.Sequential([
+        layers.Input(shape=(10, 8)),
+        layers.SimpleRNN(16)
+    ])
+    train_and_save(model, "SimpleRNN")
+
+    # LSTM
+    model = models.Sequential([
+        layers.Input(shape=(10, 8)),
+        layers.LSTM(16)
+    ])
+    train_and_save(model, "LSTM")
+
+    # GRU
+    model = models.Sequential([
+        layers.Input(shape=(10, 8)),
+        layers.GRU(16)
+    ])
+    train_and_save(model, "GRU")
+
     # Layer Combination
 
     modelA = models.Sequential([

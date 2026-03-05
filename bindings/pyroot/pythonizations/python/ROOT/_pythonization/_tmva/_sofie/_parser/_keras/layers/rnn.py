@@ -52,7 +52,17 @@ def MakeKerasRNN(layer):
     activation_alpha = []
     activation_beta = []
     clip = 0.0
-    nameY_h = ""
+
+    # keras by default has attributes["return_sequences"] == False, so the returned dimension would be 
+    # [batch, hidden_size] - the last timestep
+    # if the layer has return_sequences, then we will we return the last hidden output
+    return_sequences = attributes.get("return_sequences", False)
+    if return_sequences:
+        nameY = foutput[0]
+        nameY_h = ""
+    else:
+        nameY = ""
+        nameY_h = foutput[0]
     nameInitial_h = ""
     name_seq_len = ""
 

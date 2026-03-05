@@ -2,6 +2,7 @@ import os
 import time
 
 from . import get_keras_version
+from .layers.rnn import MakeKerasRNN
 from .layers.batchnorm import MakeKerasBatchNorm
 from .layers.binary import MakeKerasBinary
 from .layers.concat import MakeKerasConcat
@@ -63,9 +64,9 @@ mapKerasLayer = {
     "MaxPooling2D": MakeKerasPooling,
     "AveragePooling2D": MakeKerasPooling,
     "GlobalAveragePooling2D": MakeKerasPooling,
-    #  "SimpleRNN": MakeKerasRNN,
-    #  "GRU": MakeKerasRNN,
-    #  "LSTM": MakeKerasRNN,
+    "SimpleRNN": MakeKerasRNN,
+    "GRU": MakeKerasRNN,
+    "LSTM": MakeKerasRNN,
 }
 
 mapKerasLayerWithActivation = {"Dense": MakeKerasDense, "Conv2D": MakeKerasConv}
@@ -195,6 +196,17 @@ def add_layer_into_RModel(rmodel, layer_data):
             if layer_data["channels_last"]:
                 op = SOFIE.ROperator_Transpose("float")([0, 2, 3, 1], LayerName + "PostTrans", fLayerOutput)
                 rmodel.AddOperatorReference(op)
+
+
+        # MakeKerasRNN has an extra dimension num_direction. If num_direction == 1, we can safely squeeze that dimension.
+        # reference line number 457;
+        # the squeezing might lose data if we have num_direction == 2 or [2, 1, 16] example shape
+        # but for num_direction (from line number 457) we can safely squeeze
+        elif fLayerType in ["SimpleRNN", "LSTM", "GRU"]:
+            outputs[0] = LayerName + "Squeeze"
+            rmodel.AddOperatorReference(mapKerasLayer[fLayerType](layer_data))
+            op = SOFIE.ROperator_Reshape(SOFIE.ReshapeOpMode.Squeeze, [1], LayerName + "Squeeze", fLayerOutput)
+            rmodel.AddOperatorReference(op)
 
         else:
             rmodel.AddOperatorReference(mapKerasLayer[fLayerType](layer_data))
