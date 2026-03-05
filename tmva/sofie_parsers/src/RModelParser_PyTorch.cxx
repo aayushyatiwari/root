@@ -76,6 +76,7 @@ std::unique_ptr<ROperator> MakePyTorchElu(PyObject* fNode);      // For instanti
 std::unique_ptr<ROperator> MakePyTorchSelu(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Selu operator
 std::unique_ptr<ROperator> MakePyTorchSigmoid(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's Sigmoid operator
 std::unique_ptr<ROperator> MakePyTorchTranspose(PyObject* fNode); // For instantiating ROperator for PyTorch ONNX's Transpose operator
+//std::unique_ptr<ROperator> MakePyTorchBatchNorm2D(PyObject* fNode);      // For instantiating ROperator for PyTorch ONNX's BatchNorm2D operator
 
 // For mapping PyTorch ONNX Graph's Node with the preparatory functions for ROperators
 using PyTorchMethodMap = std::unordered_map<std::string, std::unique_ptr<ROperator> (*)(PyObject* fNode)>;
@@ -84,12 +85,13 @@ const PyTorchMethodMap mapPyTorchNode =
 {
     {"onnx::Gemm",      &MakePyTorchGemm},
     {"onnx::Conv",      &MakePyTorchConv},
-    {"onnx::MaxPool", &MakePyTorchMaxPool2D},
+    {"onnx::MaxPool",   &MakePyTorchMaxPool2D},
     {"onnx::Relu",      &MakePyTorchRelu},
     {"onnx::Selu",      &MakePyTorchSelu},
     {"onnx::Sigmoid",   &MakePyTorchSigmoid},
     {"onnx::Transpose", &MakePyTorchTranspose},
     {"onnx::Elu",       &MakePyTorchElu},
+//    {"onnx::BatchNorm", &MakePyTorchBatchNorm2D},
 };
 
 
@@ -373,7 +375,7 @@ std::unique_ptr<ROperator> MakePyTorchConv(PyObject* fNode){
 /// \param[in] fNode Python PyTorch ONNX Graph node
 /// \return Unique pointer to ROperator object
 ///
-/// For Conv Operator of PyTorch's ONNX Graph, attributes like dilations, ceil_mode,
+/// For MaxPool2D Operator of PyTorch's ONNX Graph, attributes like dilations, ceil_mode,
 /// kernel shape, pads and strides are found, and are passed in instantiating the
 /// ROperator object.
 std::unique_ptr<ROperator> MakePyTorchMaxPool2D(PyObject* fNode){
