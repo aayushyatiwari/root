@@ -23,6 +23,15 @@ Worked on Exercise 5-1 BONUS: Adding GRU, LSTM, SimpleRNN support to the Keras p
 1. RNN
 2. LSTM
 3. GRU
+- checked after building from `root_build` using the command 
 
+```bash  
+cmake --build . --parallel 4 --target install
+```
+```
+```
+
+
+```
 # future work 
 - will have to see `ROperator_RNN.hxx` to figure out why the metadata is not being stored the right way.
