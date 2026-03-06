@@ -29,9 +29,11 @@ Worked on Exercise 5-1 BONUS: Adding GRU, LSTM, SimpleRNN support to the Keras p
 cmake --build . --parallel 4 --target install
 ```
 ```
-```
 
 
-```
 # future work 
 - will have to see `ROperator_RNN.hxx` to figure out why the metadata is not being stored the right way.
+
+# References 
+keras doc: [link](https://keras.io/api/layers/recurrent_layers/simple_rnn/)
+llms: Claude sonnet 4.6
